@@ -21,5 +21,8 @@ is_prefix(Prefix) ->
     {match, _} -> true
   end.
 
-
-parse_args(Args) -> Args.
+% parse the arguments so that "channel,channel test" becomes [["channel",
+% "channel"], "test"]. If you know what i mean.
+parse_args(Args) -> 
+  Splitted = lists:map(fun(Arg) -> re:split(Arg,",",[{return, list}]) end, Args),
+  Splitted.
