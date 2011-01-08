@@ -20,6 +20,7 @@ parse_with_prefix(Prefix, Array) ->
   [Command | Args] = Array,
   {ok, Prefix, Command, parse_args(Args)}.
   
+parse_without_prefix([], _) -> {error, no_command};
 parse_without_prefix(Command, Array) ->
   {ok, Command, parse_args(Array)}.
 
@@ -54,6 +55,9 @@ parse_arg(Arg) ->
 parse_test() ->
   ?assertEqual({ok, "QUIT", []}, parse("QUIT")),
   ?assertEqual({ok, ":nudded", "QUIT", []}, parse(":nudded QUIT")),
-  ?assertEqual({ok, "NICK", ["nudded"]}, parse("NICK nudded")).
+  ?assertEqual({error, no_command}, parse("")),
+  ?assertEqual({error, no_command}, parse(" ")),
+  ?assertEqual({ok, "NICK", ["nudded"]}, parse("NICK nudded")),
+  ?assertEqual({ok, "USER", ["*", "*"]}, parse("USER * *")).
 
 
