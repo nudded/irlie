@@ -58,6 +58,8 @@ parse_test() ->
   ?assertEqual({error, no_command}, parse("")),
   ?assertEqual({error, no_command}, parse(" ")),
   ?assertEqual({ok, "NICK", ["nudded"]}, parse("NICK nudded")),
-  ?assertEqual({ok, "USER", ["*", "*"]}, parse("USER * *")).
+  ?assertEqual({ok, "USER", ["*", "*"]}, parse("USER * *")),
+  ?assertEqual({ok, "JOIN", ["test", ["#channel", "&otherchannel"]]},
+               parse("JOIN test #channel,&otherchannel")).
 
 
