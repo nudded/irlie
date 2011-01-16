@@ -34,8 +34,14 @@ is_prefix(Prefix) ->
 
 % parse the arguments so that "channel,channel test" becomes [["channel",
 % "channel"], "test"]. If you know what i mean.
-parse_args(Args) -> 
-  lists:map(fun(Arg) -> parse_arg(Arg) end, Args).
+parse_args(Array) -> 
+  {Args, Trailing} = lists:split(index_of_trailing(Array), Array),
+  Parsed = lists:map(fun(Arg) -> parse_arg(Arg) end, Args),
+  Trail = join_trailing_with_spaces(Trailing),
+  case Trail of
+    [] -> Parsed;
+    String -> Parsed ++ [String]
+  end.
 
 % parse individual argument
 parse_arg(Arg) ->
@@ -44,6 +50,23 @@ parse_arg(Arg) ->
     length(Array) > 1 -> Array;
     true              -> lists:nth(1,Array)
   end.
+
+index_of_trailing(Args) ->
+  index_of_trailing(Args, 0).
+  
+index_of_trailing([], Index) -> Index;
+index_of_trailing([X | Xs], Index) ->
+  case re:run(X, "^:") of
+    nomatch -> index_of_trailing(Xs, Index + 1);
+    {match, _ } -> Index
+  end.
+
+% strips the : from the trailing argument
+% makes a new string by joining the seperate words with spaces
+join_trailing_with_spaces([]) -> [];
+join_trailing_with_spaces([X|Xs]) ->
+  lists:nthtail(1,X) ++ lists:foldl(fun(Acc, V) ->
+        V ++ " "++ Acc end, "", Xs).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -60,6 +83,8 @@ parse_test() ->
   ?assertEqual({ok, "NICK", ["nudded"]}, parse("NICK nudded")),
   ?assertEqual({ok, "USER", ["*", "*"]}, parse("USER * *")),
   ?assertEqual({ok, "JOIN", ["test", ["#channel", "&otherchannel"]]},
-               parse("JOIN test #channel,&otherchannel")).
+               parse("JOIN test #channel,&otherchannel")),
+  ?assertEqual({ok, "USER", ["*", "*", "Toon 112"]},
+               parse("USER * * :Toon 112")).
 
 
