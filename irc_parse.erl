@@ -37,8 +37,7 @@ is_prefix(Prefix) ->
 parse_args(Array) -> 
   {Args, Trailing} = lists:split(index_of_trailing(Array), Array),
   Parsed = lists:map(fun(Arg) -> parse_arg(Arg) end, Args),
-  Trail = join_trailing_with_spaces(Trailing),
-  case Trail of
+  case join_trailing_with_spaces(Trailing) of
     [] -> Parsed;
     String -> Parsed ++ [String]
   end.
@@ -51,9 +50,11 @@ parse_arg(Arg) ->
     true              -> lists:nth(1,Array)
   end.
 
+% return the index of the trailing argument
+% if no trailing argument is found it will return the size of the list
 index_of_trailing(Args) ->
   index_of_trailing(Args, 0).
-  
+
 index_of_trailing([], Index) -> Index;
 index_of_trailing([X | Xs], Index) ->
   case re:run(X, "^:") of
@@ -84,6 +85,8 @@ parse_test() ->
   ?assertEqual({ok, "USER", ["*", "*"]}, parse("USER * *")),
   ?assertEqual({ok, "JOIN", ["test", ["#channel", "&otherchannel"]]},
                parse("JOIN test #channel,&otherchannel")),
+  ?assertEqual({ok, "QUIT", ["this is a message"]}, 
+               parse("QUIT :this is a message")),
   ?assertEqual({ok, "USER", ["*", "*", "Toon 112"]},
                parse("USER * * :Toon 112")).
 
