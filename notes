@@ -1,0 +1,34 @@
+Braindump
+---------
+
+socket_acceptor will function as the main interface to the outside world. (If
+you need multiple ports, you should just run multiple socket_acceptors). It
+will spawn processes for each incoming socket.
+
+each socket will run inside it's own process. So crashes and stuff like that
+should be no problem. Each socket has a receive loop. writing to the socket
+will happen from everywhere (TODO: test if this actually works, but i think this is
+no problem).
+
+channels will be handled by the channel_handler. In my opinion this should be a
+OTP gen_server. It will mostly handle_casts from the receive loops in the
+socket. But information about all channels should be accessible with
+handle_call. (eg. all channels, amount of channels. These types of calls should
+be `calls` and not `casts`).
+
+Information about users is contained in a record. I am not to sure what
+information should be inside this record, but of this I am quite certain.
+It should have the Socket (for sending stuff), the nick (TODO: think about
+tracking nick changes). Also other various info like given to it via the USER
+command.
+
+There should be some sort of layer between the parsed irc command (which
+happens inside the receive loop) and the rest of the server.  Since one has to
+be able to ping users. It would not make sense to route all calls to the
+channel_handler. Therefor a irc_router is needed (TODO: come up with better
+name). This takes the parsed irc command and sends it to the correct opt server
+or library. This should make the system quite extensible. And easy to work on
+since any features not implemented will just be ignored.
+
+TODO: think about the irc_router and make sure it doesn't come in the way of
+scalability. I guess testing this will prove which strategy is the best.
